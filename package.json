@@ -1,0 +1,14 @@
+{
+  "name": "repo-status",
+  "version": "0.0.1",
+  "description": "Repository status tracker",
+  "author": "Taco",
+  "contributors": [{
+    "name": "Travis Johnson"
+  }],
+  "dependencies": {
+    "yargs": "*",
+    "bluebird": "*"
+  },
+  "license": "MIT"
+}
