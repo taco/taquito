@@ -8,14 +8,21 @@ var relativePath = cmdargs.path || variables.path,
     source = cmdargs.source || variables.source,
     target = cmdargs.target || variables.target,
     remote = cmdargs.remote || variables.remote,
-    utils = require('./utils')({source: source, target: target, remote: remote, relativePath: relativePath});
+    skipFetch = cmdargs.skipfetch || false,
+    utils = require('./utils')({
+        source: source,
+        target: target,
+        remote: remote,
+        relativePath: relativePath,
+        skipFetch: skipFetch
+    });
 
 console.log('=============');
 console.log('Is ' + source + ' merged into ' + target + '?');
 
 fs.readdirAsync(relativePath)
     .each(function(dir) {
-
+        
         if (dir.indexOf('Mozu.') !== 0 || !fs.statSync(path.join(relativePath, dir)).isDirectory()) return;
 
         utils.fetch(dir)

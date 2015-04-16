@@ -7,6 +7,7 @@ module.exports = function(vars) {
     return { 
         fetch: function(dir) {
             return new Promise(function(fulfill, reject) {
+                if (vars.skipFetch) return fulfill(dir);
 
                 var cmd = new Command(vars.relativePath + dir, 'fetch --all', []);
 
@@ -22,7 +23,7 @@ module.exports = function(vars) {
 
         merged: function(dir) {
             return new Promise(function(fulfill, reject) {
-                var cmd = new Command(dir, 'branch --merged', [], vars.remote + '/' + target + ' -r');
+                var cmd = new Command(vars.relativePath + dir, 'branch --merged', [], vars.remote + '/' + vars.target + ' -r');
                 cmd.exec(function(err, stdout, stderr) {
                     if (err) {
                         reject(err);
@@ -37,7 +38,7 @@ module.exports = function(vars) {
 
         branchesExist: function(dir) {
             return new Promise(function(fulfill, reject) {
-                var cmd = new Command(dir, 'branch -r', [], '');
+                var cmd = new Command(vars.relativePath + dir, 'branch -r', [], '');
 
                 cmd.exec(function(err, stdout, stderr) {
                     if (err) {
@@ -51,11 +52,11 @@ module.exports = function(vars) {
                     var targetExists = branches.others.indexOf(vars.remote + '/' + vars.target) > -1;
 
                     if (!sourceExists) {
-                        return reject(dir + ' - Branch ' + source + ' does not exist');
+                        return reject(dir + ' - Branch ' + vars.source + ' does not exist');
                     }
 
                     if (!targetExists) {
-                        return reject(dir + ' - Branch ' + target + ' does not exist');
+                        return reject(dir + ' - Branch ' + vars.target + ' does not exist');
                     }
 
                     fulfill(dir);
