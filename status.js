@@ -1,82 +1,26 @@
-var argv = require('yargs').argv;
-var Promise = require('bluebird');
-var Command = require('./lib/command');
-var parse = require('./lib/parser');
-var fs = Promise.promisifyAll(require('fs'));
-var path = require('path');
+var cmdargs = require('yargs').argv,
+    Promise = require('bluebird'),
+    fs = Promise.promisifyAll(require('fs')),
+    variables = require('./variables'),
+    path = require('path');
 
-var source = argv.source || '1.16';
-var target = argv.target || 'master';
-var remote = argv.remote || 'origin';
-
-
-function fetch(dir) {
-    return new Promise(function(fulfill, reject) {
-        //return fulfill(dir);
-        var cmd = new Command(dir, 'fetch --all', []);
-
-        cmd.exec(function(err, stdout, stderr) {
-            if (err)
-                reject(err);
-
-            fulfill(dir);
-        });
-    });
-}
-
-function merged(dir) {
-    return new Promise(function(fulfill, reject) {
-        var cmd = new Command(dir, 'branch --merged', [], remote + '/' + target + ' -r');
-        cmd.exec(function(err, stdout, stderr) {
-            if (err) {
-                reject(err);
-                return;
-            }
-            var branches = parse.branch(stdout);
-
-            fulfill(branches.others.indexOf(remote + '/' + source) > -1);
-        });
-    });
-}
-
-function branchesExist(dir) {
-    return new Promise(function(fulfill, reject) {
-        var cmd = new Command(dir, 'branch -r', [], '');
-
-        cmd.exec(function(err, stdout, stderr) {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            var branches = parse.branch(stdout);
-
-            var sourceExists = branches.others.indexOf(remote + '/' + source) > -1;
-            var targetExists = branches.others.indexOf(remote + '/' + target) > -1;
-
-            if (!sourceExists) {
-                return reject(dir + ' - Branch ' + source + ' does not exist');
-            }
-
-            if (!targetExists) {
-                return reject(dir + ' - Branch ' + target + ' does not exist');
-            }
-
-            fulfill(dir);
-        });
-    });
-}
+var relativePath = cmdargs.path || variables.path,
+    source = cmdargs.source || variables.source,
+    target = cmdargs.target || variables.target,
+    remote = cmdargs.remote || variables.remote,
+    utils = require('./utils')({source: source, target: target, remote: remote, relativePath: relativePath});
 
 console.log('=============');
 console.log('Is ' + source + ' merged into ' + target + '?');
 
-fs.readdirAsync(".")
+fs.readdirAsync(relativePath)
     .each(function(dir) {
-        if (dir.indexOf('Mozu.') !== 0 || !fs.statSync(path.join('.', dir)).isDirectory()) return;
 
-        fetch(dir)
-            .then(branchesExist)
-            .then(merged)
+        if (dir.indexOf('Mozu.') !== 0 || !fs.statSync(path.join(relativePath, dir)).isDirectory()) return;
+
+        utils.fetch(dir)
+            .then(utils.branchesExist)
+            .then(utils.merged)
             .then(function(exists) {
                 var str = dir;
 
@@ -90,7 +34,5 @@ fs.readdirAsync(".")
             })
             .catch(function(e) {
                 console.log(e);
-            })
-
-
+            });
     });
