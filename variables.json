@@ -1,6 +1,6 @@
 {
     "path": "../",
-    "source": "1.16",
+    "source": "master",
     "target": "master",
     "remote": "origin"
 }
