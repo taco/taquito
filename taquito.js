@@ -29,50 +29,60 @@ var operations = {
         
         console.log('Fetching all branches \n');
 
-        fs.readdirAsync(relativePath)
-            .each(function(dir) {
-                
-                if (dir.indexOf('Mozu.') !== 0 || !fs.statSync(path.join(relativePath, dir)).isDirectory()) return;
+        helpers.repoWrapper(function(dir) {
 
-                git.fetch(dir)
-                    .catch(function(e) {
-                        console.log(e);
-                    });
-            });
+            git.fetch(dir)
+                .then(function(dir) {
+                    console.log(dir);
+                })
+                .catch(function(e) {
+                    console.log(e);
+                });
+
+        });
     },
 
     checkMerge: function() {
         
         console.log('Checking Merge: Is', source, 'merged into', target, '\n');
 
+        helpers.repoWrapper(function(dir) {
+
+            git.branchesExist(dir)
+                .then(git.merged)
+                .then(function(exists) {
+                    var str = dir;
+
+                    for (var i = 0; i < 30 - dir.length; i++) {
+                        str += ' ';
+                    }
+
+                    str += '[' + (exists ? 'X' : ' ') + ']';
+
+                    console.log(str);
+                })
+                .catch(function(e) {
+                    console.log(e);
+                });
+
+        });
+    }
+}
+
+var helpers = {
+    
+    printLogo: function() {
+        console.log('\n  ______                  _ __      \n /_  __/___ _____ ___  __(_) /_____ \n  / / / __ `/ __ `/ / / / / __/ __ \\\n / / / /_/ / /_/ / /_/ / / /_/ /_/ /\n/_/  \\__,_/\\__, /\\__,_/_/\\__/\\____/ \n             /_/                    \n');
+    },
+
+    repoWrapper: function(fn) {
         fs.readdirAsync(relativePath)
             .each(function(dir) {
                 
                 if (dir.indexOf('Mozu.') !== 0 || !fs.statSync(path.join(relativePath, dir)).isDirectory()) return;
 
-                git.branchesExist(dir)
-                    .then(git.merged)
-                    .then(function(exists) {
-                        var str = dir;
-
-                        for (var i = 0; i < 30 - dir.length; i++) {
-                            str += ' ';
-                        }
-
-                        str += '[' + (exists ? 'X' : ' ') + ']';
-
-                        console.log(str);
-                    })
-                    .catch(function(e) {
-                        console.log(e);
-                    });
+                fn(dir);
             });
-    }
-}
-
-var helpers = {
-    printLogo: function() {
-        console.log('\n  ______                  _ __      \n /_  __/___ _____ ___  __(_) /_____ \n  / / / __ `/ __ `/ / / / / __/ __ \\\n / / / /_/ / /_/ / /_/ / / /_/ /_/ /\n/_/  \\__,_/\\__, /\\__,_/_/\\__/\\____/ \n             /_/                    \n');
     }
 }
 
