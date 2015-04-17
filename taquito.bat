@@ -1,1 +1,1 @@
-node status.js %*
+node taquito.js %*

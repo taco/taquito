@@ -1,2 +1,2 @@
 #!/bin/bash
-node status.js $@
+node taquito.js $@
