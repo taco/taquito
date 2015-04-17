@@ -17,7 +17,8 @@ var relativePath = cmdargs.path || variables.path,
         skipFetch: skipFetch
     });
 
-console.log('=============');
+utils.printLogo();
+
 console.log('Is ' + source + ' merged into ' + target + '?');
 
 fs.readdirAsync(relativePath)
