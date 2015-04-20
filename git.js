@@ -19,14 +19,12 @@ module.exports = function(vars) {
 
                         fulfill(dir);
                     });
-
                 });
             });
         },
 
         merged: function(dirs) {
             return dirs.map(function(d) {
-
                 return new Promise(function(fulfill, reject) {
                     var dir = d.value(),
                         cmd = new Command(vars.relativePath + dir, 'branch --merged', [], vars.remote + '/' + vars.target + ' -r');
@@ -46,9 +44,7 @@ module.exports = function(vars) {
         branchesExist: function(dirs) {
 
             return dirs.map(function(d) {
-
                 return new Promise(function(fulfill, reject) {
-
                     var dir = d.value(),
                         cmd = new Command(vars.relativePath + dir, 'branch -r', [], '');
 
@@ -58,13 +54,11 @@ module.exports = function(vars) {
                             return;
                         }
 
-                        var branches = parse.branch(stdout);
-
-                        var sourceExists = branches.others.indexOf(vars.remote + '/' + vars.source) > -1;
-                        var targetExists = branches.others.indexOf(vars.remote + '/' + vars.target) > -1;
+                        var branches = parse.branch(stdout),
+                            sourceExists = branches.others.indexOf(vars.remote + '/' + vars.source) > -1,
+                            targetExists = branches.others.indexOf(vars.remote + '/' + vars.target) > -1;
 
                         if (!sourceExists) {
-
                             return reject(dir + ' - Branch ' + vars.source + ' does not exist');
                         }
 

@@ -42,7 +42,8 @@ var operations = {
         helpers.repoWrapper(function(dirs) {
             
             settle(git.branchesExist(dirs))
-                .then(function(res){return settle(git.merged(res));})
+                .then(git.merged)
+                .then(settle)
                 .then(function(values){
                     values.sort(helpers.sort)
                         .forEach(function(val){
