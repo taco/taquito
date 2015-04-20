@@ -10,6 +10,7 @@ var operation = cmdargs._[0] || 'help',
     target = cmdargs.target || variables.target,
     remote = cmdargs.remote || variables.remote,
     skipFetch = cmdargs.skipfetch || false,
+    settle = Promise.settle,
     git = require('./git')({
         source: source,
         target: target,
@@ -18,27 +19,19 @@ var operation = cmdargs._[0] || 'help',
         skipFetch: skipFetch
     });
 
-//git.printLogo();
-
-//console.log('Is ' + source + ' merged into ' + target + '?');
-//
-//
-
 var operations = {
     fetch: function() {
         
         console.log('Fetching all branches \n');
 
-        helpers.repoWrapper(function(dir) {
+        helpers.repoWrapper(function(dirs) {
 
-            git.fetch(dir)
-                .then(function(dir) {
-                    console.log(dir);
-                })
-                .catch(function(e) {
-                    console.log(e);
+            settle(git.fetch(dirs))
+                .then(function(values) {
+                    values.forEach(function(val){ 
+                        console.log(val.value());
+                    });
                 });
-
         });
     },
 
@@ -46,28 +39,40 @@ var operations = {
         
         console.log('Checking Merge: Is', source, 'merged into', target, '\n');
 
-        helpers.repoWrapper(function(dir) {
+        helpers.repoWrapper(function(dirs) {
+            
+            settle(git.branchesExist(dirs))
+                .then(function(res){return settle(git.merged(res));})
+                .then(function(values){
+                    values.sort(helpers.sort)
+                        .forEach(function(val){
 
-            git.branchesExist(dir)
-                .then(git.merged)
-                .then(function(exists) {
-                    var str = dir;
+                            var str;
 
-                    for (var i = 0; i < 30 - dir.length; i++) {
-                        str += ' ';
-                    }
+                            if (val.isFulfilled()) {
+                                str = val.value().name;
 
-                    str += '[' + (exists ? 'X' : ' ') + ']';
+                                for (var i = 0; i < 30 - val.value().name.length; i++) {
+                                    str += ' ';
+                                }
 
-                    console.log(str);
-                })
-                .catch(function(e) {
-                    console.log(e);
+                                str += '[' + (val.value().isMerged ? 'X' : ' ') + ']';
+
+                                console.log(str);
+                            }
+
+                            else {
+                                // to do: get errored branches
+                                // str = val;
+                                // console.log(val.error());
+                            }
+                           
+
+                        });
                 });
-
         });
     }
-}
+};
 
 var helpers = {
     
@@ -75,16 +80,18 @@ var helpers = {
         console.log('\n  ______                  _ __      \n /_  __/___ _____ ___  __(_) /_____ \n  / / / __ `/ __ `/ / / / / __/ __ \\\n / / / /_/ / /_/ / /_/ / / /_/ /_/ /\n/_/  \\__,_/\\__, /\\__,_/_/\\__/\\____/ \n             /_/                    \n');
     },
 
-    repoWrapper: function(fn) {
-        fs.readdirAsync(relativePath)
-            .each(function(dir) {
-                
-                if (dir.indexOf('Mozu.') !== 0 || !fs.statSync(path.join(relativePath, dir)).isDirectory()) return;
+    correctDir: function(dir) {
+        return dir.indexOf('Mozu.') !== -1; 
+    },
 
-                fn(dir);
-            });
+    sort: function(val) {
+        return val.isFulfilled() && !val.value().isMerged;
+    },
+
+    repoWrapper: function(fn) {
+        settle(fs.readdirAsync(relativePath).filter(this.correctDir)).then(fn);
     }
-}
+};
 
 helpers.printLogo();
 

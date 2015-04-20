@@ -2,5 +2,6 @@
     "path": "../",
     "source": "master",
     "target": "master",
-    "remote": "origin"
+    "remote": "origin",
+    "skipfetch": false
 }

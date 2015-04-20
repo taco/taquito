@@ -5,61 +5,75 @@ var Promise = require('bluebird'),
 module.exports = function(vars) {
 
     return { 
-        fetch: function(dir) {
-            return new Promise(function(fulfill, reject) {
-                if (vars.skipFetch) return fulfill(dir);
+        fetch: function(dirs) {
+            return dirs.map(function(d) {
+                return new Promise(function(fulfill, reject) {
+                    var dir = d.value();
+                    if (vars.skipFetch) return fulfill(dir);
 
-                var cmd = new Command(vars.relativePath + dir, 'fetch --all', []);
+                    var cmd = new Command(vars.relativePath + dir, 'fetch --all', []);
 
-                cmd.exec(function(err, stdout, stderr) {
-                    if (err)
-                        reject(err);
+                    cmd.exec(function(err, stdout, stderr) {
+                        if (err)
+                            reject(err);
 
-                    fulfill(dir);
-                });
+                        fulfill(dir);
+                    });
 
-            });
-        },
-
-        merged: function(dir) {
-            return new Promise(function(fulfill, reject) {
-                var cmd = new Command(vars.relativePath + dir, 'branch --merged', [], vars.remote + '/' + vars.target + ' -r');
-                cmd.exec(function(err, stdout, stderr) {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
-                    var branches = parse.branch(stdout);
-
-                    fulfill(branches.others.indexOf(vars.remote + '/' + vars.source) > -1);
                 });
             });
         },
 
-        branchesExist: function(dir) {
-            return new Promise(function(fulfill, reject) {
-                var cmd = new Command(vars.relativePath + dir, 'branch -r', [], '');
+        merged: function(dirs) {
+            return dirs.map(function(d) {
 
-                cmd.exec(function(err, stdout, stderr) {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
+                return new Promise(function(fulfill, reject) {
+                    var dir = d.value(),
+                        cmd = new Command(vars.relativePath + dir, 'branch --merged', [], vars.remote + '/' + vars.target + ' -r');
+                    cmd.exec(function(err, stdout, stderr) {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        var branches = parse.branch(stdout);
 
-                    var branches = parse.branch(stdout);
+                        fulfill({name: dir, isMerged: branches.others.indexOf(vars.remote + '/' + vars.source) > -1});
+                    });
+                });
+            });
+        },
 
-                    var sourceExists = branches.others.indexOf(vars.remote + '/' + vars.source) > -1;
-                    var targetExists = branches.others.indexOf(vars.remote + '/' + vars.target) > -1;
+        branchesExist: function(dirs) {
 
-                    if (!sourceExists) {
-                        return reject(dir + ' - Branch ' + vars.source + ' does not exist');
-                    }
+            return dirs.map(function(d) {
 
-                    if (!targetExists) {
-                        return reject(dir + ' - Branch ' + vars.target + ' does not exist');
-                    }
+                return new Promise(function(fulfill, reject) {
 
-                    fulfill(dir);
+                    var dir = d.value(),
+                        cmd = new Command(vars.relativePath + dir, 'branch -r', [], '');
+
+                    cmd.exec(function(err, stdout, stderr) {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+
+                        var branches = parse.branch(stdout);
+
+                        var sourceExists = branches.others.indexOf(vars.remote + '/' + vars.source) > -1;
+                        var targetExists = branches.others.indexOf(vars.remote + '/' + vars.target) > -1;
+
+                        if (!sourceExists) {
+
+                            return reject(dir + ' - Branch ' + vars.source + ' does not exist');
+                        }
+
+                        if (!targetExists) {
+                            return reject(dir + ' - Branch ' + vars.target + ' does not exist');
+                        }
+
+                        fulfill(dir);
+                    });
                 });
             });
         }
