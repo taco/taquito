@@ -1,7 +1,4 @@
-var Promise = require('bluebird'),
-    fs = Promise.promisifyAll(require('fs'));
-
-module.exports = function(fs) {
+module.exports = function(Promise, fs) {
     return {
         printLogo: function() {
             console.log('\n  ______                  _ __      \n /_  __/___ _____ ___  __(_) /_____ \n  / / / __ `/ __ `/ / / / / __/ __ \\\n / / / /_/ / /_/ / /_/ / / /_/ /_/ /\n/_/  \\__,_/\\__, /\\__,_/_/\\__/\\____/ \n             /_/                    \n');
@@ -17,6 +14,16 @@ module.exports = function(fs) {
 
         repoWrapper: function(relativePath, fn) {
             Promise.settle(fs.readdirAsync(relativePath).filter(this.correctDir)).then(fn);
+        },
+
+        getVars: function(cmdargs, variables) {
+            return {
+                source: cmdargs.source || variables.source,
+                target: cmdargs.target || variables.target,
+                remote: cmdargs.remote || variables.remote,
+                relativePath: cmdargs.path || variables.path,
+                operation: cmdargs._[0] || variables.defaultOperation
+            };
         }
     };
 };

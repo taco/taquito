@@ -1,33 +1,20 @@
 var cmdargs = require('yargs').argv,
     Promise = require('bluebird'),
     fs = Promise.promisifyAll(require('fs')),
-    helpers = require('./helper')(fs),
-    variables = require('./variables'),
-    path = require('path');
+    helpers = require('./helper')(Promise, fs),
+    variables = require('./variables');
 
-var operation = cmdargs._[0] || 'help',
-    relativePath = cmdargs.path || variables.path,
-    source = cmdargs.source || variables.source,
-    target = cmdargs.target || variables.target,
-    remote = cmdargs.remote || variables.remote,
-    skipFetch = cmdargs.skipfetch || false,
-    settle = Promise.settle,
-    git = require('./git')({
-        source: source,
-        target: target,
-        remote: remote,
-        relativePath: relativePath,
-        skipFetch: skipFetch
-    });
+var vars = helpers.getVars(cmdargs, variables),
+    git = require('./git')(Promise, vars);
 
 var operations = {
     fetch: function() {
         
         console.log('Fetching all branches \n');
 
-        helpers.repoWrapper(relativePath, function(dirs) {
+        helpers.repoWrapper(vars.relativePath, function(dirs) {
 
-            settle(git.fetch(dirs))
+            Promise.settle(git.fetch(dirs))
                 .then(function(values) {
                     values.forEach(function(val){ 
                         console.log(val.value());
@@ -38,13 +25,13 @@ var operations = {
 
     checkMerge: function() {
         
-        console.log('Checking Merge: Is', source, 'merged into', target, '\n');
+        console.log('Checking Merge: Is', vars.source, 'merged into', vars.target, '\n');
 
-        helpers.repoWrapper(relativePath, function(dirs) {
+        helpers.repoWrapper(vars.relativePath, function(dirs) {
             
-            settle(git.branchesExist(dirs))
+            Promise.settle(git.branchesExist(dirs))
                 .then(git.merged)
-                .then(settle)
+                .then(Promise.settle)
                 .then(function(values){
                     values.sort(helpers.sort)
                         .forEach(function(val){
@@ -73,16 +60,21 @@ var operations = {
                         });
                 });
         });
+    },
+
+    help: function() {
+        console.log('Possible Commands:', '\n', '-', Object.keys(this).join('\n - '));
     }
 };
 
 
 helpers.printLogo();
 
-if (operations[operation]) {
-    operations[operation]();
+if (operations[vars.operation]) {
+    operations[vars.operation]();
 } else {
-    console.log('unknown command', operation);
+    console.log('Unknown Command: ', vars.operation, '\n');
+    operations.help();
 }
 
 

@@ -1,15 +1,13 @@
-var Promise = require('bluebird'),
-    Command = require('./lib/command'),
+var Command = require('./lib/command'),
     parse = require('./lib/parser');
 
-module.exports = function(vars) {
+module.exports = function(Promise, vars) {
 
     return { 
         fetch: function(dirs) {
             return dirs.map(function(d) {
                 return new Promise(function(fulfill, reject) {
                     var dir = d.value();
-                    if (vars.skipFetch) return fulfill(dir);
 
                     var cmd = new Command(vars.relativePath + dir, 'fetch --all', []);
 
