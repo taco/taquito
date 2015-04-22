@@ -1,6 +1,7 @@
 var cmdargs = require('yargs').argv,
     Promise = require('bluebird'),
     fs = Promise.promisifyAll(require('fs')),
+    helpers = require('./helper')(fs),
     variables = require('./variables'),
     path = require('path');
 
@@ -24,7 +25,7 @@ var operations = {
         
         console.log('Fetching all branches \n');
 
-        helpers.repoWrapper(function(dirs) {
+        helpers.repoWrapper(relativePath, function(dirs) {
 
             settle(git.fetch(dirs))
                 .then(function(values) {
@@ -39,7 +40,7 @@ var operations = {
         
         console.log('Checking Merge: Is', source, 'merged into', target, '\n');
 
-        helpers.repoWrapper(function(dirs) {
+        helpers.repoWrapper(relativePath, function(dirs) {
             
             settle(git.branchesExist(dirs))
                 .then(git.merged)
@@ -75,24 +76,6 @@ var operations = {
     }
 };
 
-var helpers = {
-    
-    printLogo: function() {
-        console.log('\n  ______                  _ __      \n /_  __/___ _____ ___  __(_) /_____ \n  / / / __ `/ __ `/ / / / / __/ __ \\\n / / / /_/ / /_/ / /_/ / / /_/ /_/ /\n/_/  \\__,_/\\__, /\\__,_/_/\\__/\\____/ \n             /_/                    \n');
-    },
-
-    correctDir: function(dir) {
-        return dir.indexOf('Mozu.') !== -1; 
-    },
-
-    sort: function(val) {
-        return val.isFulfilled() && !val.value().isMerged;
-    },
-
-    repoWrapper: function(fn) {
-        settle(fs.readdirAsync(relativePath).filter(this.correctDir)).then(fn);
-    }
-};
 
 helpers.printLogo();
 
