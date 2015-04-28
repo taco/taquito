@@ -3,12 +3,15 @@
   "version": "0.0.1",
   "description": "Repository status tracker",
   "author": "Taco",
-  "contributors": [{
-    "name": "Travis Johnson"
-  }],
+  "contributors": [
+    {
+      "name": "Travis Johnson"
+    }
+  ],
   "dependencies": {
-    "yargs": "*",
-    "bluebird": "*"
+    "bluebird": "*",
+    "mkdirp": "^0.5.0",
+    "yargs": "*"
   },
   "license": "MIT"
 }

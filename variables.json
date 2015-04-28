@@ -3,5 +3,10 @@
     "source": "master",
     "target": "master",
     "remote": "origin",
-    "defaultOperation": "help"
+    "defaultOperation": "help",
+    "diffConfigVars": {
+        "targetDir": "/targetDir",
+        "sourceDir": "/sourceDir",
+        "buildConfigCommand": "..\\Mozu.Config\\Configs\\make_legacy_configs.bat"
+    }
 }

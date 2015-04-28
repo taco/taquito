@@ -1,7 +1,6 @@
-var Command = require('./lib/command'),
-    parse = require('./lib/parser');
+var parse = require('./lib/parser');
 
-module.exports = function(Promise, vars) {
+module.exports = function(Promise, vars, Command) {
 
     return { 
         fetch: function(dirs) {
@@ -37,6 +36,38 @@ module.exports = function(Promise, vars) {
                     });
                 });
             });
+        },
+
+        doesRevisionExist: function(revision) {
+
+            return new Promise(function(fulfill, reject) {
+
+                var cmd = new Command(vars.relativePath + 'Mozu.Config', 'rev-parse --verify ' + revision, [], '');
+
+                cmd.exec(function(err, stdout, stderr) {
+
+                    if (arguments[2]) {
+                      return console.log('Revision', revision, 'does not exist. Please try a new revision.');
+                    }
+
+                    fulfill(revision);
+                });
+            });
+        },
+
+        checkout: function(branch, revision) {
+
+            return new Promise(function(fulfill, reject) {
+
+                var cmd = new Command(vars.relativePath + branch, 'checkout ' + revision, [], '');
+
+                cmd.exec(function(err, stdout, stderr){
+                    if (!err) return fulfill(stdout);
+
+                    reject(err);
+                });
+            });
+
         },
 
         branchesExist: function(dirs) {
