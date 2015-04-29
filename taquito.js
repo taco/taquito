@@ -4,11 +4,11 @@ var cmdargs = require('yargs').argv,
     Exec = require('child_process').exec,
     Mkdirp = require('mkdirp'),
     Command = require('./lib/command'),
-    helpers = require('./helper')(Promise, fs, Mkdirp, Exec, Command),
+    helpers = require('./lib/helper')(Promise, fs, Mkdirp, Exec, Command),
     config = require('config');
 
 var vars = helpers.getVars(cmdargs, config),
-    git = require('./git')(Promise, vars, Command);
+    git = require('./lib/git')(Promise, vars, Command);
 
 var operations = {
     fetch: function() {
