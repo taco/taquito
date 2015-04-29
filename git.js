@@ -70,6 +70,16 @@ module.exports = function(Promise, vars, Command) {
 
         },
 
+        contains: function(vars, revision, dir) {
+            return new Promise(function(fulfill, reject) {
+                var cmd = new Command(vars.relativePath + dir, 'branch --contains ' + revision, [], '');
+
+                cmd.exec(function(err, stdout, stderr) {
+                    fulfill(stdout);
+                });
+            });
+        },
+
         branchesExist: function(dirs) {
 
             return dirs.map(function(d) {

@@ -1,10 +1,10 @@
 var cmdargs = require('yargs').argv,
     Promise = require('bluebird'),
-    fs = Promise.promisifyAll(require('fs')),
+    fs = Promise.promisifyAll(require('fs-extra')),
     Exec = require('child_process').exec,
     Mkdirp = require('mkdirp'),
     Command = require('./lib/command'),
-    helpers = require('./helper')(Promise, fs, Mkdirp, Exec),
+    helpers = require('./helper')(Promise, fs, Mkdirp, Exec, Command),
     variables = require('./variables');
 
 var vars = helpers.getVars(cmdargs, variables),
@@ -39,16 +39,14 @@ var operations = {
             helpers.mkdir(vars.diffConfigVars.sourceDir);
 
             git.checkout('Mozu.Config', vars.source)
-                .then(helpers.buildAndCopyConfigs.bind(this, vars, vars.source))
-                .then(function(){
+                .then(helpers.buildAndCopyConfigs.bind(this, vars, {sourceDir: vars.source}, 'Mozu.Config', git.contains))
+                .then(git.checkout.bind(this, 'Mozu.Config', vars.target))
+                .then(helpers.buildAndCopyConfigs.bind(this, vars, {targetDir: vars.target}, 'Mozu.Config', git.contains), function() {
                     console.log(arguments);
                 });
 
         });
 
-        // Exec(vars.diffConfigPath, function() {
-        //     console.log(arguments)
-        // })
     },
 
     checkMerge: function() {

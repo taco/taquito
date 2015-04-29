@@ -1,4 +1,4 @@
-module.exports = function(Promise, fs, Mkdirp, Exec) {
+module.exports = function(Promise, fs, Mkdirp, Exec, Command, git) {
     return {
         printLogo: function() {
             console.log('\n  ______                  _ __      \n /_  __/___ _____ ___  __(_) /_____ \n  / / / __ `/ __ `/ / / / / __/ __ \\\n / / / /_/ / /_/ / /_/ / / /_/ /_/ /\n/_/  \\__,_/\\__, /\\__,_/_/\\__/\\____/ \n             /_/                    \n');
@@ -16,13 +16,38 @@ module.exports = function(Promise, fs, Mkdirp, Exec) {
             Promise.settle(fs.readdirAsync(relativePath).filter(this.correctDir)).then(fn);
         },
 
-        buildAndCopyConfigs: function(vars, revision) {
+        buildAndCopyConfigs: function(vars, revision, dir, contains) {
 
             return new Promise(function(fullfill, reject) {
 
-                Exec(vars.diffConfigVars.buildConfigCommand, function() {
-                    
-                    fullfill(arguments);
+                contains(vars, '1.17', dir).then(function(result) {
+
+                    var revType = Object.keys(revision)[0];
+
+                    if (result.indexOf(revision[revType]) !== -1) {
+                        console.log('Building Legacy Configs');
+                        
+                        Exec(vars.diffConfigVars.buildConfigCommand, function() {
+
+                            fs.copy(vars.relativePath + dir + '/Configs/_legacy', vars.diffConfigVars[revType], function() {
+                                fullfill(arguments);
+                            });
+
+                        });
+                    }
+
+                    else {
+                        console.log('Copying Legacy Configs, Repo does not need to be built');
+
+                        ['ci', 'dev', 'qa', 'qa2', 'si', 'perf', 'prod'].forEach(function(d){
+                
+                            fs.copySync(vars.relativePath + dir + '/Configs/' + d, vars.diffConfigVars[revType] + '/' + d);
+
+                        });
+
+                        fullfill(arguments);
+                    }
+
                 });
 
             });
