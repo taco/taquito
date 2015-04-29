@@ -53,8 +53,11 @@ module.exports = function(Promise, fs, Mkdirp, Exec, Command, git) {
             });
         },
 
-        diffConfigs: function() {
-            console.log(arguments);
+        diffConfigs: function(vars) {
+            Exec(vars.diffConfigVars.diffCommand + ' "../../sourceDir" "../../targetDir"', function() {
+                console.log('Ready to Compare');
+                process.exit();
+            });
         },
 
         mkdir: function(path) {

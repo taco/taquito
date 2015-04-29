@@ -39,11 +39,10 @@ var operations = {
             helpers.mkdir(vars.diffConfigVars.sourceDir);
 
             git.checkout('Mozu.Config', vars.source)
-                .then(helpers.buildAndCopyConfigs.bind(this, vars, {sourceDir: vars.source}, 'Mozu.Config', git.contains))
-                .then(git.checkout.bind(this, 'Mozu.Config', vars.target))
-                .then(helpers.buildAndCopyConfigs.bind(this, vars, {targetDir: vars.target}, 'Mozu.Config', git.contains), function() {
-                    console.log(arguments);
-                });
+                .then(helpers.buildAndCopyConfigs.bind(this, vars, {sourceDir: vars.source}, 'Mozu.Config', git.contains)).then(
+            git.checkout.bind(this, 'Mozu.Config', vars.target))
+                .then(helpers.buildAndCopyConfigs.bind(this, vars, {targetDir: vars.target}, 'Mozu.Config', git.contains))
+                .then(helpers.diffConfigs.bind(this, vars));
 
         });
 

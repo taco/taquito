@@ -8,6 +8,6 @@
         "targetDir": "/targetDir",
         "sourceDir": "/sourceDir",
         "buildConfigCommand": "..\\Mozu.Config\\Configs\\make_legacy_configs.bat",
-        "diffTool": "diffMerge"
+        "diffCommand": "WinMergeU.exe //r"
     }
 }
