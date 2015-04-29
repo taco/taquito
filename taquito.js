@@ -5,9 +5,9 @@ var cmdargs = require('yargs').argv,
     Mkdirp = require('mkdirp'),
     Command = require('./lib/command'),
     helpers = require('./helper')(Promise, fs, Mkdirp, Exec, Command),
-    variables = require('./variables');
+    config = require('config');
 
-var vars = helpers.getVars(cmdargs, variables),
+var vars = helpers.getVars(cmdargs, config),
     git = require('./git')(Promise, vars, Command);
 
 var operations = {

@@ -64,14 +64,14 @@ module.exports = function(Promise, fs, Mkdirp, Exec, Command, git) {
             return Mkdirp.sync(path);
         },
  
-        getVars: function(cmdargs, variables) {
+        getVars: function(cmdargs, config) {
             return {
-                source: cmdargs.source || variables.source,
-                target: cmdargs.target || variables.target,
-                remote: cmdargs.remote || variables.remote,
-                relativePath: cmdargs.path || variables.path,
-                operation: cmdargs._[0] || variables.defaultOperation,
-                diffConfigVars: variables. diffConfigVars
+                source: cmdargs.source || config.get('source'),
+                target: cmdargs.target || config.get('target'),
+                remote: cmdargs.remote || config.get('remote'),
+                relativePath: cmdargs.path || config.get('path'),
+                operation: cmdargs._[0] || config.get('defaultOperation'),
+                diffConfigVars: config.get('diffConfigVars')
             };
         }
     };
