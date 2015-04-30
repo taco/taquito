@@ -35,14 +35,18 @@ var operations = {
 
         Promise.settle([git.doesRevisionExist(vars.source), git.doesRevisionExist(vars.target)]).then(function(){
 
-            helpers.mkdir(vars.diffConfigVars.targetDir);
-            helpers.mkdir(vars.diffConfigVars.sourceDir);
+            var tempbranchname = 'Configs';
 
-            git.checkout('Mozu.Config', vars.source)
-                .then(helpers.buildAndCopyConfigs.bind(this, vars, {sourceDir: vars.source}, 'Mozu.Config', git.contains)).then(
-            git.checkout.bind(this, 'Mozu.Config', vars.target))
-                .then(helpers.buildAndCopyConfigs.bind(this, vars, {targetDir: vars.target}, 'Mozu.Config', git.contains))
-                .then(helpers.diffConfigs.bind(this, vars));
+            helpers.tempDir(__dirname + vars.diffConfigVars.targetDir, true);
+            helpers.tempDir(__dirname + vars.diffConfigVars.sourceDir, true);
+            helpers.tempDir(__dirname + vars.scratchDir, true);
+
+            git.clone('1.17', __dirname + vars.scratchDir, 'http://tfs.corp.volusion.com:8080/tfs/VNext/v2Mozu/_git/Mozu.Config', tempbranchname)
+                .then(git.checkout.bind(this, 'Mozu.Config', vars.source, __dirname + vars.scratchDir + '/' + tempbranchname))
+                .then(helpers.buildAndCopyConfigs.bind(this, vars, {sourceDir: vars.source}, tempbranchname, __dirname))
+                .then(git.checkout.bind(this, 'Mozu.Config', vars.target, __dirname + vars.scratchDir + '/' + tempbranchname))  
+                .then(helpers.buildAndCopyConfigs.bind(this, vars, {targetDir: vars.target}, tempbranchname, __dirname))
+                .then(helpers.diffConfigs.bind(this,vars, __dirname));
 
         });
 

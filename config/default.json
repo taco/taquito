@@ -4,10 +4,11 @@
     "target": "master",
     "remote": "origin",
     "defaultOperation": "help",
+    "scratchDir": "\\scratchDir",
     "diffConfigVars": {
         "targetDir": "/targetDir",
         "sourceDir": "/sourceDir",
-        "buildConfigCommand": "..\\Mozu.Config\\Configs\\make_legacy_configs.bat",
+        "buildConfigCommand": "make_legacy_configs.bat",
         "diffCommand": "WinMergeU.exe //r"
     }
 }
