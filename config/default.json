@@ -11,10 +11,31 @@
         "buildConfigCommand": "make_legacy_configs.bat",
         "diffCommand": "WinMergeU.exe //r"
     },
-    "repos": {
+    "repoInformation": {
         "baseUrl": "http://tfs.corp.volusion.com:8080/tfs/VNext/v2Mozu/_git/",
         "repos": [
-            "Mozu.Core"
+            "Mozu.AdminUser",
+            "Mozu.CommerceRuntime",
+            "Mozu.Config",
+            "Mozu.Content",
+            "Mozu.Core",
+            "Mozu.Customer",
+            "Mozu.Emailer",
+            "Mozu.Location",
+            "Mozu.Login",
+            "Mozu.MZDB",
+            "Mozu.PricingRuntime",
+            "Mozu.ProductAdmin",
+            "Mozu.ProductRuntime",
+            "Mozu.Provisioning",
+            "Mozu.Reference",
+            "Mozu.ReverseProxy",
+            "Mozu.SearchIndexing",
+            "Mozu.ShippingAdmin",
+            "Mozu.ShippingRuntime",
+            "Mozu.SiteBuilder",
+            "Mozu.SiteSettings",
+            "Mozu.Tenant"
         ]
     }
 }
