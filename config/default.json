@@ -10,5 +10,11 @@
         "sourceDir": "/sourceDir",
         "buildConfigCommand": "make_legacy_configs.bat",
         "diffCommand": "WinMergeU.exe //r"
+    },
+    "repos": {
+        "baseUrl": "http://tfs.corp.volusion.com:8080/tfs/VNext/v2Mozu/_git/",
+        "repos": [
+            "Mozu.Core"
+        ]
     }
 }
