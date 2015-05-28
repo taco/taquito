@@ -5,11 +5,12 @@
     "remote": "origin",
     "defaultOperation": "help",
     "scratchDir": "\\scratchDir",
+    "verbose" : true,
     "diffConfigVars": {
         "targetDir": "/targetDir",
         "sourceDir": "/sourceDir",
         "buildConfigCommand": "make_legacy_configs.bat",
-        "diffCommand": "WinMergeU.exe //r"
+        "diffCommand": "C:\\code\\ConfigUtil\\ConfigUtil\\bin\\Debug\\ConfigUtil.exe --dir"
     },
     "repoInformation": {
         "baseUrl": "http://tfs.corp.volusion.com:8080/tfs/VNext/v2Mozu/_git/",
