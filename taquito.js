@@ -9,6 +9,7 @@ var cmdargs = require('yargs').argv,
     helpers = require('./lib/helper')(Promise, fs, Mkdirp, Exec, Command),
     config = require('config'),
     persist = require('node-persist'),
+    moment = require('moment'),
     inquirer = require('inquirer');
 
 var vars = helpers.getVars(cmdargs, config),
@@ -32,12 +33,64 @@ var operations = {
     },
 
     deploys: function() {
+        this[vars.all || vars.repos.length > 1 ? '_deploysList' : '_deploysDetail']();
+    },
+
+    _deploysDetail: function() {
+        octopus.dashboard()
+            .then(function(data) {
+                var rows = [['Env'.red, 'Release'.red, 'When'.red, 'Time'.red]],
+                    project,
+                    item;
+
+                
+
+                project = data.Projects.find(function(proj) {
+                    return proj.Name === vars.repo;
+                });
+
+                if (!project) {
+                    console.log('ERROR:'.red, 'Unable to find octopus project', vars.repo);
+                    return;
+                }
+
+                console.log(clc.magenta('Repository:\t' + vars.repo));
+
+
+
+                data.Environments.forEach(function(env) {
+                    var row,
+                        item;
+
+                    if (!octopus.helpers.validEnvironment(vars, env.Name)) {
+                        return;
+                    }
+
+
+
+                    item = data.Items.find(function(item) {
+                        return item.EnvironmentId === env.Id && item.ProjectId === project.Id;
+                    });
+
+                    if (!item) {
+                        return;
+                    }
+
+                    rows.push([env.Name, item.ReleaseVersion, moment(item.CompletedTime).fromNow(), item.CompletedTime]);
+
+                });
+
+
+                console.log(cliff.stringifyRows(rows));
+            });
+    },
+
+    _deploysList: function() {
 
         if (!Array.prototype.find) {
             console.log(clc.red('ERROR:'), 'Must run node in --harmony mode to run this function');
             return;
         }
-
 
         octopus.dashboard()
             .then(function(data) {
@@ -53,9 +106,7 @@ var operations = {
 
                     data.Environments.forEach(function(env) {
                         env.Name = env.Name.toUpperCase();
-                        if (vars.env.some(function(envName) {
-                                return envName.trim() === env.Name || env.Name.indexOf(envName.trim() + '-') === 0;
-                            }) && env.Name.indexOf('-A') < 0 && env.Name.indexOf('-B') < 0 && env.Name.indexOf('-INT') < 0) {
+                        if (octopus.helpers.validEnvironment(vars, env.Name)) {
                             rows[0].push(clc.red(env.Name));
                             environments.push(env);
                         }
@@ -66,9 +117,8 @@ var operations = {
                             return proj.Name === dir.value();
                         });
                     }).filter(function(proj) {
-                        return proj && (vars.repo[0] === 'ALL' || vars.repo.some(function(name) {
-                            //console.log(name, proj.Name)
-                            return proj.Name.toUpperCase().indexOf(name.trim()) > -1;
+                        return proj && (vars.all || vars.repos.some(function(name) {
+                            return proj.Name.indexOf(name.trim()) > -1;
                         }));
                     });
 
@@ -93,6 +143,10 @@ var operations = {
                     console.log(cliff.stringifyRows(rows));
                 });
             });
+    },
+
+    _dumpVars: function() {
+        console.log(vars);
     },
 
     clone: function() {
@@ -209,10 +263,6 @@ var operations = {
                                 str += '[' + (val.value().isMerged ? 'X' : ' ') + ']';
 
                                 console.log(str);
-                            } else {
-                                // to do: get errored branches
-                                // str = val;
-                                // console.log(val.error());
                             }
 
 
@@ -222,7 +272,9 @@ var operations = {
     },
 
     help: function() {
-        console.log('Possible Commands:', '\n', '-', Object.keys(this).join('\n - '));
+        console.log('Possible Commands:', '\n', '-', Object.keys(this).filter(function(k) {
+            return k.indexOf('_') !== 0;
+        }).join('\n - '));
     }
 };
 
