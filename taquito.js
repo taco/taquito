@@ -7,7 +7,9 @@ var cmdargs = require('yargs').argv,
     clc = require('cli-color'),
     Command = require('./lib/command'),
     helpers = require('./lib/helper')(Promise, fs, Mkdirp, Exec, Command),
-    config = require('config');
+    config = require('config'),
+    persist = require('node-persist'),
+    inquirer = require('inquirer');
 
 var vars = helpers.getVars(cmdargs, config),
     git = require('./lib/git')(Promise, vars, Command),
@@ -93,8 +95,7 @@ var operations = {
             });
     },
 
-    cloneRepos: function() {
-        console.log('Cloning repositories:');
+    clone: function() {
         helpers.repoWrapper(vars.relativePath, function(dirs) {
             var repoInformation = config.get('repoInformation'),
                 dirValues = dirs.map(function(dir) {
@@ -103,20 +104,41 @@ var operations = {
                 diff = repoInformation.repos.filter(function(name) {
                     return dirValues.indexOf(name) < 0
                 }),
-                promises = diff.map(function(repo) {
-                    console.log('\tStarting', repo);
-                    return git.clone('master', vars.relativePath, repoInformation.baseUrl + repo, repo);
+                choices = diff.map(function(repo) {
+                    return {
+                        name: repo
+                    };
                 });
 
-            Promise.settle(promises)
-                .then(function(results) {
-                    results.forEach(function(r) {
-                        if (r.isRejected()) {
-                            console.log(r.reason());
-                        }
+            if (!choices.length) {
+                console.log('There are no repos to clone');
+                return;
+            }
+
+            inquirer.prompt([{
+                type: 'checkbox',
+                message: 'Select Repos to Clone:',
+                name: 'repos',
+                choices: choices
+            }], function(answers) {
+                if (!answers.repos.length) {
+                    return;
+                }
+
+                console.log('Cloning selected repositories');
+
+                Promise.settle(answers.repos.map(function(repo) {
+                        return git.clone('master', vars.relativePath, repoInformation.baseUrl + repo, repo);
+                    }))
+                    .then(function(results) {
+                        results.forEach(function(r) {
+                            if (r.isRejected()) {
+                                console.log(r.reason());
+                            }
+                        });
+                        console.log('Cloning complete');
                     });
-                    console.log('Cloning complete');
-                })
+            });
         });
     },
 
