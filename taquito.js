@@ -8,7 +8,8 @@ var cmdargs = require('yargs').argv,
     config = require('config');
 
 var vars = helpers.getVars(cmdargs, config),
-    git = require('./lib/git')(Promise, vars, Command);
+    git = require('./lib/git')(Promise, vars, Command),
+    octopus = require('./lib/octopus');
 
 var operations = {
     fetch: function() {
@@ -24,6 +25,14 @@ var operations = {
                     });
                 });
         });
+    },
+
+    octopusDashboard: function() {
+        octopus.dashboard()
+            .then(function(data) {
+                //console.log(data.toString('utf8'));
+                //console.log(response);
+            });
     },
 
     cloneRepos: function() {
