@@ -3,6 +3,8 @@ var cmdargs = require('yargs').argv,
     fs = Promise.promisifyAll(require('fs-extra')),
     Exec = require('child_process').exec,
     Mkdirp = require('mkdirp'),
+    cliff = require('cliff'),
+    clc = require('cli-color'),
     Command = require('./lib/command'),
     helpers = require('./lib/helper')(Promise, fs, Mkdirp, Exec, Command),
     config = require('config');
@@ -27,11 +29,67 @@ var operations = {
         });
     },
 
-    octopusDashboard: function() {
+    deploys: function() {
+
+        if (!Array.prototype.find) {
+            console.log(clc.red('ERROR:'), 'Must run node in --harmony mode to run this function');
+            return;
+        }
+
+
         octopus.dashboard()
             .then(function(data) {
-                //console.log(data.toString('utf8'));
-                //console.log(response);
+
+                helpers.repoWrapper(vars.relativePath, function(dirs) {
+
+                    var rows = [
+                            [clc.red('Repository')]
+                        ],
+                        environments = [],
+                        projects;
+
+
+                    data.Environments.forEach(function(env) {
+                        env.Name = env.Name.toUpperCase();
+                        if (vars.env.some(function(envName) {
+                                return envName.trim() === env.Name || env.Name.indexOf(envName.trim() + '-') === 0;
+                            }) && env.Name.indexOf('-A') < 0 && env.Name.indexOf('-B') < 0 && env.Name.indexOf('-INT') < 0) {
+                            rows[0].push(clc.red(env.Name));
+                            environments.push(env);
+                        }
+                    });
+
+                    projects = dirs.map(function(dir) {
+                        return data.Projects.find(function(proj) {
+                            return proj.Name === dir.value();
+                        });
+                    }).filter(function(proj) {
+                        return proj && (vars.repo[0] === 'ALL' || vars.repo.some(function(name) {
+                            //console.log(name, proj.Name)
+                            return proj.Name.toUpperCase().indexOf(name.trim()) > -1;
+                        }));
+                    });
+
+                    projects.forEach(function(proj) {
+                        if (!proj) {
+                            return;
+                        }
+
+                        rows.push([proj.Name].concat(environments.map(function(env) {
+                            var item = data.Items.find(function(item) {
+                                    //console.log(item.EnvironmentId);
+                                    return item.EnvironmentId === env.Id && item.ProjectId === proj.Id;
+                                }),
+                                release;
+
+                            return item ? item.ReleaseVersion : '';
+
+                        })));
+
+                    });
+
+                    console.log(cliff.stringifyRows(rows));
+                });
             });
     },
 
@@ -39,7 +97,9 @@ var operations = {
         console.log('Cloning repositories:');
         helpers.repoWrapper(vars.relativePath, function(dirs) {
             var repoInformation = config.get('repoInformation'),
-                dirValues = dirs.map(function(dir) { return dir.value() }),
+                dirValues = dirs.map(function(dir) {
+                    return dir.value()
+                }),
                 diff = repoInformation.repos.filter(function(name) {
                     return dirValues.indexOf(name) < 0
                 }),
@@ -62,7 +122,9 @@ var operations = {
 
     listRepos: function() {
         helpers.repoWrapper(vars.relativePath, function(dirs) {
-            dirs.map(function(dir) { return dir.value(); })
+            dirs.map(function(dir) {
+                    return dir.value();
+                })
                 .sort()
                 .forEach(function(name, i) {
                     console.log('\t' + (i + 1) + '.\t' + name);
