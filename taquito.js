@@ -32,57 +32,92 @@ var operations = {
         });
     },
 
+    releases: function() {
+
+        if (!vars.repo) {
+            return console.log('ERROR:'.red, 'Must been inside a tracked repository or specificy one with --repo argument');
+        }
+
+        Promise.settle([operations._deploysDetail(), octopus.api.releases(vars.repo)])
+            .then(processReleases);
+
+        function processReleases(results) {
+            var data = results[1].value(),
+                noteRegex = /Branch: (.*)\. Release created.* by (.*) via ([a-zA-Z\s]*)\./,
+                rows;
+            console.log('');
+
+            rows = [
+                    ['Release'.red, 'When'.red, 'Branch'.red, 'User'.red]
+                ]
+                .concat(data.Items.map(function(rel) {
+                    var matches = (rel.ReleaseNotes || '').match(noteRegex) || [];
+
+                    return [rel.Version, moment(rel.LastModifiedOn).fromNow(), matches[1] || '', matches[2] || ''];
+                }));
+
+            rows.splice(vars.results + 1)
+
+            console.log(cliff.stringifyRows(rows));
+        };
+    },
+
     deploys: function() {
         this[vars.all || vars.repos.length > 1 ? '_deploysList' : '_deploysDetail']();
     },
 
     _deploysDetail: function() {
-        octopus.dashboard()
-            .then(function(data) {
-                var rows = [['Env'.red, 'Release'.red, 'When'.red, 'Time'.red]],
-                    project,
-                    item;
-
-                
-
-                project = data.Projects.find(function(proj) {
-                    return proj.Name === vars.repo;
-                });
-
-                if (!project) {
-                    console.log('ERROR:'.red, 'Unable to find octopus project', vars.repo);
-                    return;
-                }
-
-                console.log(clc.magenta('Repository:\t' + vars.repo));
-
-
-
-                data.Environments.forEach(function(env) {
-                    var row,
+        return new Promise(function(fulfill, reject) {
+            octopus.api.dashboard()
+                .then(function(data) {
+                    var rows = [
+                            ['Env'.red, 'Release'.red, 'When'.red, 'Time'.red]
+                        ],
+                        project,
                         item;
 
-                    if (!octopus.helpers.validEnvironment(vars, env.Name)) {
-                        return;
-                    }
 
 
-
-                    item = data.Items.find(function(item) {
-                        return item.EnvironmentId === env.Id && item.ProjectId === project.Id;
+                    project = data.Projects.find(function(proj) {
+                        return proj.Name === vars.repo;
                     });
 
-                    if (!item) {
+                    if (!project) {
+                        console.log('ERROR:'.red, 'Unable to find octopus project', vars.repo);
                         return;
                     }
 
-                    rows.push([env.Name, item.ReleaseVersion, moment(item.CompletedTime).fromNow(), item.CompletedTime]);
+                    console.log('\t' + vars.repo.magenta.bold + '\n');
 
+
+
+                    data.Environments.forEach(function(env) {
+                        var row,
+                            item;
+
+                        if (!octopus.helpers.validEnvironment(vars, env.Name)) {
+                            return;
+                        }
+
+
+
+                        item = data.Items.find(function(item) {
+                            return item.EnvironmentId === env.Id && item.ProjectId === project.Id;
+                        });
+
+                        if (!item) {
+                            return;
+                        }
+
+                        rows.push([env.Name, item.ReleaseVersion, moment(item.CompletedTime).fromNow(), item.CompletedTime]);
+
+                    });
+
+
+                    console.log(cliff.stringifyRows(rows));
+                    fulfill();
                 });
-
-
-                console.log(cliff.stringifyRows(rows));
-            });
+        });
     },
 
     _deploysList: function() {
@@ -92,7 +127,7 @@ var operations = {
             return;
         }
 
-        octopus.dashboard()
+        octopus.api.dashboard()
             .then(function(data) {
 
                 helpers.repoWrapper(vars.relativePath, function(dirs) {
