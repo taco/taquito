@@ -67,6 +67,9 @@ var operations = {
     },
 
     _deploysDetail: function() {
+        
+        console.log('Legend:', 'Latest'.inverse, 'Success'.green, 'Deploying'.cyan, 'Failed'.red, '\n');
+
         return new Promise(function(fulfill, reject) {
             octopus.api.dashboard()
                 .then(function(data) {
@@ -74,7 +77,9 @@ var operations = {
                             ['Env'.red, 'Release'.red, 'When'.red, 'Time'.red]
                         ],
                         project,
-                        item;
+                        item,
+                        maxWeight = 0,
+                        maxIndices = [];
 
 
 
@@ -93,13 +98,16 @@ var operations = {
 
                     data.Environments.forEach(function(env) {
                         var row,
-                            item;
+                            item,
+                            weight;
 
                         if (!octopus.helpers.validEnvironment(vars, env.Name)) {
                             return;
                         }
 
-
+                        if ((env.Name.match(/HP/) && !vars.repo.hp) || (env.Name.match(/(SB)|(TP)/) && !vars.repo.tp)) {
+                            return;
+                        }
 
                         item = data.Items.find(function(item) {
                             return item.EnvironmentId === env.Id && item.ProjectId === project.Id;
@@ -109,9 +117,23 @@ var operations = {
                             return;
                         }
 
-                        rows.push([env.Name, item.ReleaseVersion, moment(item.CompletedTime).fromNow(), item.CompletedTime]);
+                        weight = helpers.weightReleaseVersion(item.ReleaseVersion);
 
+                        if (weight === maxWeight) {
+                            maxIndices.push(rows.length);
+                        } else if (weight > maxWeight) {
+                            maxWeight = weight;
+                            maxIndices = [rows.length];
+                        }
+
+                        rows.push([env.Name, helpers.colorDeployState(item.ReleaseVersion, item.State), moment(item.CompletedTime).fromNow(), item.CompletedTime]);
                     });
+
+                    if (maxIndices.length) {
+                        maxIndices.forEach(function(index) {
+                            rows[index+1][1] = rows[index+1][1].inverse;
+                        });
+                    }
 
 
                     console.log(cliff.stringifyRows(rows));
