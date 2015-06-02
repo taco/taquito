@@ -5,7 +5,7 @@
     "remote": "origin",
     "defaultOperation": "help",
     "scratchDir": "\\scratchDir",
-    "verbose" : true,
+    "verbose": true,
     "diffConfigVars": {
         "targetDir": "/targetDir",
         "sourceDir": "/sourceDir",
@@ -18,29 +18,75 @@
     },
     "repoInformation": {
         "baseUrl": "http://tfs.corp.volusion.com:8080/tfs/VNext/v2Mozu/_git/",
-        "repos": [
-            "Mozu.AdminUser",
-            "Mozu.CommerceRuntime",
-            "Mozu.Config",
-            "Mozu.Content",
-            "Mozu.Core",
-            "Mozu.Customer",
-            "Mozu.Emailer",
-            "Mozu.Location",
-            "Mozu.Login",
-            "Mozu.MZDB",
-            "Mozu.PricingRuntime",
-            "Mozu.ProductAdmin",
-            "Mozu.ProductRuntime",
-            "Mozu.Provisioning",
-            "Mozu.Reference",
-            "Mozu.ReverseProxy",
-            "Mozu.SearchIndexing",
-            "Mozu.ShippingAdmin",
-            "Mozu.ShippingRuntime",
-            "Mozu.SiteBuilder",
-            "Mozu.SiteSettings",
-            "Mozu.Tenant"
-        ]
+        "repos": [{
+            "name": "Mozu.AdminUser",
+            "hp": true
+        }, {
+            "name": "Mozu.CommerceRuntime",
+            "tp": true
+        }, {
+            "name": "Mozu.Config",
+            "hp": true,
+            "tp": true
+        }, {
+            "name": "Mozu.Content",
+            "tp": true
+        }, {
+            "name": "Mozu.Core"
+        }, {
+            "name": "Mozu.Customer",
+            "hp": true,
+            "tp": true
+        }, {
+            "name": "Mozu.Emailer",
+            "hp": true,
+            "tp": true
+        }, {
+            "name": "Mozu.Location",
+            "tp": true
+        }, {
+            "name": "Mozu.Login",
+            "hp": true
+        }, {
+            "name": "Mozu.MZDB",
+            "hp": true,
+            "tp": true
+        }, {
+            "name": "Mozu.PricingRuntime",
+            "tp": true
+        }, {
+            "name": "Mozu.ProductAdmin",
+            "tp": true
+        }, {
+            "name": "Mozu.ProductRuntime",
+            "tp": true
+        }, {
+            "name": "Mozu.Provisioning",
+            "hp": true
+        }, {
+            "name": "Mozu.Reference",
+            "hp": true
+        }, {
+            "name": "Mozu.ReverseProxy",
+            "hp": true
+        }, {
+            "name": "Mozu.SearchIndexing",
+            "tp": true
+        }, {
+            "name": "Mozu.ShippingAdmin",
+            "tp": true
+        }, {
+            "name": "Mozu.ShippingRuntime",
+            "tp": true
+        }, {
+            "name": "Mozu.SiteBuilder",
+            "tp": true
+        }, {
+            "name": "Mozu.SiteSettings",
+            "tp": true
+        }, {
+            "name": "Mozu.Tenant",
+            "hp": true
+        }]
     }
 }

@@ -38,7 +38,7 @@ var operations = {
             return console.log('ERROR:'.red, 'Must been inside a tracked repository or specificy one with --repo argument');
         }
 
-        Promise.settle([operations._deploysDetail(), octopus.api.releases(vars.repo)])
+        Promise.settle([operations._deploysDetail(), octopus.api.releases(vars.repo.name)])
             .then(processReleases);
 
         function processReleases(results) {
@@ -79,7 +79,7 @@ var operations = {
 
 
                     project = data.Projects.find(function(proj) {
-                        return proj.Name === vars.repo;
+                        return proj.Name === vars.repo.name;
                     });
 
                     if (!project) {
@@ -87,7 +87,7 @@ var operations = {
                         return;
                     }
 
-                    console.log('\t' + vars.repo.magenta.bold + '\n');
+                    console.log('\t' + vars.repo.name.magenta.bold + '\n');
 
 
 
@@ -127,6 +127,8 @@ var operations = {
             return;
         }
 
+        console.log('Legend:', 'Latest'.inverse, 'Success'.green, 'Deploying'.cyan, 'Failed'.red, '\n');
+
         octopus.api.dashboard()
             .then(function(data) {
 
@@ -158,26 +160,59 @@ var operations = {
                     });
 
                     projects.forEach(function(proj) {
+                        var repo,
+                            maxWeight = 0,
+                            maxIndices = [];
+
                         if (!proj) {
                             return;
                         }
 
-                        rows.push([proj.Name].concat(environments.map(function(env) {
+                        repo = config.get('repoInformation.repos').find(function(repo) {
+                            return repo.name === proj.Name;
+                        });
+
+                        if (!repo) return;
+
+                        proj.hp = repo.hp;
+                        proj.tp = repo.tp;
+
+                        rows.push([proj.Name].concat(environments.map(function(env, index) {
                             var item = data.Items.find(function(item) {
-                                    //console.log(item.EnvironmentId);
                                     return item.EnvironmentId === env.Id && item.ProjectId === proj.Id;
                                 }),
-                                release;
+                                release,
+                                weight,
+                                ret;
 
-                            return item ? item.ReleaseVersion : '';
+                            if (!item || (env.Name.match(/HP/) && !proj.hp) || (env.Name.match(/(SB)|(TP)/) && !proj.tp)) {
+                                return '--------';
+                            }
+                            
+                            weight = helpers.weightReleaseVersion(item.ReleaseVersion);
 
+                            if (weight === maxWeight) {
+                                maxIndices.push(index);
+                            } else if (weight > maxWeight) {
+                                maxWeight = weight;
+                                maxIndices = [index];
+                            }
+
+                            return helpers.colorDeployState(item.ReleaseVersion, item.State);
                         })));
-
+                        
+                        if (maxIndices.length) {
+                            maxIndices.forEach(function(index) {
+                                rows[rows.length - 1][index + 1] = rows[rows.length - 1][index + 1].inverse;
+                            });
+                        }
                     });
 
                     console.log(cliff.stringifyRows(rows));
                 });
             });
+
+        
     },
 
     _dumpVars: function() {
@@ -190,8 +225,8 @@ var operations = {
                 dirValues = dirs.map(function(dir) {
                     return dir.value()
                 }),
-                diff = repoInformation.repos.filter(function(name) {
-                    return dirValues.indexOf(name) < 0
+                diff = repoInformation.repos.filter(function(repo) {
+                    return dirValues.indexOf(repo.name) < 0
                 }),
                 choices = diff.map(function(repo) {
                     return {
