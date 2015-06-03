@@ -8,4 +8,4 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $DIR
 
 # Fire it up
-node --harmony taquito.js $@ --dir "$REPO"
+npm start -- taquito.js $@ --dir "$REPO"

@@ -1,16 +1,4 @@
-var cmdargs = require('yargs').argv,
-    Promise = require('bluebird'),
-    fs = Promise.promisifyAll(require('fs-extra')),
-    Exec = require('child_process').exec,
-    Mkdirp = require('mkdirp'),
-    cliff = require('cliff'),
-    clc = require('cli-color'),
-    Command = require('./lib/command'),
-    helpers = require('./lib/helper')(Promise, fs, Mkdirp, Exec, Command),
-    config = require('config'),
-    persist = require('node-persist'),
-    moment = require('moment'),
-    inquirer = require('inquirer');
+import {cmdargs, Promise, fs, Exec, Mkdirp, cliff, clc, Command, helpers, config, persist, moment, inquirer} from './lib/vars';
 
 var vars = helpers.getVars(cmdargs, config),
     git = require('./lib/git')(Promise, vars, Command),
@@ -47,19 +35,17 @@ var operations = {
                 rows;
             console.log('');
 
-            rows = [
-                    ['Release'.red, 'When'.red, 'Branch'.red, 'User'.red]
-                ]
+            rows = [['Release'.red, 'When'.red, 'Branch'.red, 'User'.red]]
                 .concat(data.Items.map(function(rel) {
                     var matches = (rel.ReleaseNotes || '').match(noteRegex) || [];
 
                     return [rel.Version, moment(rel.LastModifiedOn).fromNow(), matches[1] || '', matches[2] || ''];
                 }));
 
-            rows.splice(vars.results + 1)
+            rows.splice(vars.results + 1);
 
             console.log(cliff.stringifyRows(rows));
-        };
+        }
     },
 
     deploys: function() {
@@ -77,11 +63,8 @@ var operations = {
                             ['Env'.red, 'Release'.red, 'When'.red, 'Time'.red]
                         ],
                         project,
-                        item,
                         maxWeight = 0,
                         maxIndices = [];
-
-
 
                     project = data.Projects.find(function(proj) {
                         return proj.Name === vars.repo.name;
@@ -94,11 +77,8 @@ var operations = {
 
                     console.log('\t' + vars.repo.name.magenta.bold + '\n');
 
-
-
                     data.Environments.forEach(function(env) {
-                        var row,
-                            item,
+                        var item,
                             weight;
 
                         if (!octopus.helpers.validEnvironment(vars, env.Name)) {
@@ -134,7 +114,6 @@ var operations = {
                             rows[index+1][1] = rows[index+1][1].inverse;
                         });
                     }
-
 
                     console.log(cliff.stringifyRows(rows));
                     fulfill();
@@ -203,9 +182,7 @@ var operations = {
                             var item = data.Items.find(function(item) {
                                     return item.EnvironmentId === env.Id && item.ProjectId === proj.Id;
                                 }),
-                                release,
-                                weight,
-                                ret;
+                                weight;
 
                             if (!item || (env.Name.match(/HP/) && !proj.hp) || (env.Name.match(/(SB)|(TP)/) && !proj.tp)) {
                                 return '--------';
@@ -245,10 +222,10 @@ var operations = {
         helpers.repoWrapper(vars.relativePath, function(dirs) {
             var repoInformation = config.get('repoInformation'),
                 dirValues = dirs.map(function(dir) {
-                    return dir.value()
+                    return dir.value();
                 }),
                 diff = repoInformation.repos.filter(function(repo) {
-                    return dirValues.indexOf(repo.name) < 0
+                    return dirValues.indexOf(repo.name) < 0;
                 }),
                 choices = diff.map(function(repo) {
                     return {
