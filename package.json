@@ -16,6 +16,7 @@
     }
   ],
   "dependencies": {
+    "babel": "^5.4.7",
     "bluebird": "^2.9.26",
     "cli-color": "^1.0.0",
     "cliff": "^0.1.10",
@@ -28,5 +29,10 @@
     "node-rest-client": "^1.5.1",
     "yargs": "^3.9.1"
   },
-  "license": "MIT"
+  "scripts": {
+    "start": "babel-node"
+  },
+  "license": "MIT",
+  "devDependencies": {
+  }
 }

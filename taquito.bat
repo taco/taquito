@@ -1,1 +1,1 @@
-node --harmony taquito.js %*
+npm start -- taquito.js %*

@@ -6,4 +6,4 @@ $scriptDir = dirname $PSScriptRoot
 $dir= $(cd $scriptDir; pwd)
 cd $dir
 
-node --harmony taquito.js $args --dir $repo
+npm start -- taquito.js $args --dir $repo
