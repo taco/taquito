@@ -111,7 +111,7 @@ var operations = {
 
                     if (maxIndices.length) {
                         maxIndices.forEach(function(index) {
-                            rows[index+1][1] = rows[index+1][1].inverse;
+                            rows[index][1] = rows[index][1].inverse;
                         });
                     }
 
