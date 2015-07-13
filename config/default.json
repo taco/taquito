@@ -88,5 +88,16 @@
             "name": "Mozu.Tenant",
             "hp": true
         }]
-    }
+    },
+    "themesPath": "../themes",
+    "themes": [{
+        "id": "~1234~4321",
+        "name": "Tenant 1"
+    }, {
+        "id": "~1235~4322",
+        "name": "Tenant 2"
+    }, {
+        "id": "~1111~1111",
+        "name": "Tenant 3"
+    }]
 }

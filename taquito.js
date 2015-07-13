@@ -10,7 +10,8 @@ var cmdargs = require('yargs').argv,
     config = require('config'),
     persist = require('node-persist'),
     moment = require('moment'),
-    inquirer = require('inquirer');
+    inquirer = require('inquirer'),
+    jsonfile = require('jsonfile');
 
 var vars = helpers.getVars(cmdargs, config),
     git = require('./lib/git')(Promise, vars, Command),
@@ -361,6 +362,69 @@ var operations = {
                         });
                 });
         });
+    },
+
+    themes: function() {
+        var results = {}
+        var promises = []
+        var rows = [['id', 'Name', 'Extends', 'Overridden']]
+        
+        config.get('themes').forEach((theme) => {
+            const id = theme.id
+            const split = id.split('~')
+            const path = config.get('themesPath') + '/' + split[1] + '/' + split[2] + '/'
+            const name = theme.name
+
+            results[id] = {
+                name: name
+            }
+
+            promises.push(new Promise((fulfill, reject) => {
+                const themeJson = path + 'theme.json' 
+                fs.stat(themeJson, (err, stats) => {
+                    if (!stats) {
+                        return fulfill();
+                    }
+                    jsonfile.readFile(themeJson, (err, obj) => {
+                        if (obj && obj.about) {
+                            results[id]['extends'] = obj.about['extends'];
+                            results[id]['themeName'] = obj.about['name'];
+                        }
+                        fulfill();
+                    })
+                })
+            }))
+
+            promises.push(new Promise((fulfill, reject) => {
+                const themeFile = path + vars.file
+                fs.stat(themeFile, (err, stats) => {
+                    if (stats && stats.isFile()) {
+                        results[id].overridden = true
+                    }
+                    fulfill();
+                })
+            }))
+        })
+
+        console.log('\nIs ' + vars.file.blue + ' overridden in the themes?\n');
+
+        Promise.settle(promises)
+            .then(() => {
+                for (var id in results) {
+                    const theme = results[id]
+                    var row = []
+
+                    rows.push(row);
+
+                    row.push(id)
+                    row.push(theme.themeName || '')
+                    row.push(theme['extends'] || '')
+                    row.push(theme.overridden ? 'Yes'.red : 'No'.green)
+
+                }
+
+                console.log(cliff.stringifyRows(rows))
+            })
     },
 
     help: function() {
