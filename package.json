@@ -31,7 +31,7 @@
     "yargs": "^3.9.1"
   },
   "scripts": {
-    "start": "babel-node"
+    "start": "node ./node_modules/babel/bin/babel-node"
   },
   "license": "MIT",
   "devDependencies": {}
