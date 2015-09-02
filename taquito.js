@@ -362,6 +362,8 @@ var operations = {
 
                                 row.push(val.value().isMerged ? 'OK'.green : 'FAIL'.red);
 
+                                row.push(val.value().author);
+
                                 rows.push(row);
                             }
 
