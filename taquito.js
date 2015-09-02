@@ -341,25 +341,34 @@ var operations = {
                 .then(git.merged)
                 .then(Promise.settle)
                 .then(function(values) {
+                    var rows = [
+                            ['Project'.red, 'Merged'.red, 'Owner'.red]
+                        ];
+
                     values.sort(helpers.sort)
                         .forEach(function(val) {
 
-                            var str;
+                            
+                            var row = [];
 
                             if (val.isFulfilled()) {
-                                str = val.value().name;
+                                var name = val.value().name;
 
-                                for (var i = 0; i < 30 - val.value().name.length; i++) {
-                                    str += ' ';
+                                if (!val.value().isMerged) {
+                                    name = name.red;
                                 }
 
-                                str += '[' + (val.value().isMerged ? 'X' : ' ') + ']';
+                                row.push(name);
 
-                                console.log(str);
+                                row.push(val.value().isMerged ? 'OK'.green : 'FAIL'.red);
+
+                                rows.push(row);
                             }
 
 
                         });
+
+                    console.log(cliff.stringifyRows(rows));
                 });
         });
     },
