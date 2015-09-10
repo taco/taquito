@@ -18,6 +18,8 @@ var vars = helpers.getVars(cmdargs, config),
     octopus = require('./lib/octopus');
 
 var operations = {
+    
+
     fetch: function() {
 
         console.log('Fetching all branches \n');
@@ -436,6 +438,30 @@ var operations = {
 
                 console.log(cliff.stringifyRows(rows))
             })
+    },
+
+    buildScripts: function() {
+        console.log(config.get('buildScripts.script'))
+        console.log(vars.relativePath + config.get('buildScripts.path'))
+        var spawn = require('child_process').spawn,
+            ls = spawn('cmd.exe', [
+                '/c',
+                config.get('buildScripts.script')
+            ], {
+                cwd: vars.relativePath + config.get('buildScripts.path')
+            });
+
+        ls.stdout.on('data', function (data) {
+            console.log('stdout: ' + data);
+        });
+
+        ls.stderr.on('data', function (data) {
+            console.log('stderr: ' + data);
+        });
+
+        ls.on('exit', function (code) {
+            console.log('child process exited with code ' + code);
+        });
     },
 
     help: function() {

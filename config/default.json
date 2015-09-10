@@ -6,6 +6,10 @@
     "defaultOperation": "help",
     "scratchDir": "\\scratchDir",
     "verbose": true,
+    "buildScripts": {
+        "path": "Mozu.SiteBuilder/Mozu.SiteBuilder.UX.Admin/Scripts",
+        "script": "makeTfsBuild.bat"
+    },
     "diffConfigVars": {
         "targetDir": "/targetDir",
         "sourceDir": "/sourceDir",
